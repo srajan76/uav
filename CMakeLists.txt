@@ -8,7 +8,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 option(ENABLE_CPLEX "Link to Cplex libraries" ON)
 
-find_package(lemon)
 # LEMON settings
 if (APPLE)
     set(LEMON_INCLUDE_DIR "/usr/local/include" CACHE PATH "LEMON include directory")
