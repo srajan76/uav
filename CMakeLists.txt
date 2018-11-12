@@ -8,13 +8,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 option(ENABLE_CPLEX "Link to Cplex libraries" ON)
 
-
+find_package(lemon)
 # LEMON settings
 if (APPLE)
-    set(LEMON_INCLUDE_DIR "/Users/kaarthiksundar/usr/local/include" CACHE PATH "LEMON include directory")
+    set(LEMON_INCLUDE_DIR "/usr/local/include" CACHE PATH "LEMON include directory")
     set(LEMON_INCLUDE_DIRS "${LEMON_INCLUDE_DIR}")
     set(LEMON_LIB_NAME "libemon.a")
-    set(LEMON_LIBRARY "/Users/kaarthiksundar/usr/local/lib/${LEMON_LIB_NAME}" CACHE FILEPATH "LEMON library")
+    set(LEMON_LIBRARY "/usr/local/lib/${LEMON_LIB_NAME}" CACHE FILEPATH "LEMON library")
     set(LEMON_LIBRARIES "${LEMON_LIBRARY}")
     MARK_AS_ADVANCED(LEMON_LIBRARY LEMON_INCLUDE_DIR)
     include_directories(${LEMON_INCLUDE_DIRS})
