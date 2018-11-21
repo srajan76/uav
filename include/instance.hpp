@@ -9,44 +9,52 @@
 #include <unordered_map>
 #include <tuple>
 #include <set>
+#include<sstream>
+#include<vector>
+#include<random>
 
 #define _USE_MATH_DEFINES
-
+using namespace std;
 
 
 class Instance {
     protected:
-        std::string _name = "";
-        std::string _path = "./data/";
-        std::tuple<double, double> _grid;
+        string _name = "_Data.txt";
+        string _path = "./data/";
+        tuple<double, double> _grid;
         int _numTargets = 10;
-        std::unordered_map<int, std::tuple<double, double> > _targetCoords;
+        unordered_map<int, std::tuple<double, double> > _targetCoords;
         int _numSatellitesPerTarget = 3;
         int _numSatellites = 30;
         float _radius = 2;
-        std::unordered_map<int, std::set<int> > _satelliteMap; // target id -> {satellite set}
-        std::unordered_map<int, std::tuple<double, double> > _satelliteCoords; 
+        unordered_map<int, set<int> > _satelliteMap; // target id -> {satellite set}
+        unordered_map<int, tuple<double, double> > _satelliteCoords; 
         
 
 
     public:
         Instance();
-        Instance(const Instance& in);
+        Instance(const Instance & in);
 
-        void setName(std::string);
-        void setPath(std::string);
+        void setName(string); // sets the instance name no of targets- no of statelite tagets/target - instance number
+        void setPath(string);// where the text file neeeds to be saved in the data folder of UAV
         void setNumTargets(int);
-        void setTargetCoords(std::unordered_map<int, std::tuple<double, double> >);
+        void setNumSatellitesPerTarget(int);
+        void setTargetCoords(unordered_map<int, tuple<double, double> >); 
+        void setSatelliteCoords(unordered_map<int, tuple<double, double> >); 
         
 
-        std::string getName() const;
-        std::string getPath() const;
-        int getNumTargets() const;
-        std::unordered_map<int, std::tuple<double, double> > getTargetCoords() const; 
+        string getName() const; //return the name
+        string getPath() const; // return the path
+        int getNumTargets() const; //returns no of targets
+        int getNumSatellitesPerTarget() const;//returns no of  satellites per target
+        unordered_map<int, std::tuple<double, double> > getTargetCoords() const; // get from set target coords
+        unordered_map<int, std::tuple<double, double> > getSatelliteCoords() const;
 
-        void createData();
-        void readData();
-        void writeData();
+        void createData(); // do all random generation
+        void readData(); // read data from a txt file
+        void writeData(); // write to a text file
+
 
 };
 
