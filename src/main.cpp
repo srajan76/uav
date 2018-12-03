@@ -4,6 +4,7 @@
 #include <lemon/connectivity.h>
 #include "optionParser.hpp"
 #include "instance.hpp"
+#include "hpath.hpp"
 
 using namespace std;
 
