@@ -28,4 +28,12 @@ class Model {
         void clearEnv() { _env.end(); };
 };
 
+void populateHPModel(HamiltonianPath & hPath) {
+
+    Model & model = getModel(hPath);
+    /* create the model using the CPLEX API */
+    
+    return 0;
+}
+
 #endif
