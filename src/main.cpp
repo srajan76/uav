@@ -11,27 +11,29 @@ using namespace std;
 int main(int argc, char* argv[]){
 
     Instance instance;
-    instance.setName("10-3-1.txt");
+    instance.setName("10-3-5-0.txt");
     instance.setPath("../data/");
     instance.readData();
+
+
     //random check to see if data is reading ok
     //std::cout << instance.getRadius() << std::endl;
 
     // Create target coordinate map for the instance
     std::unordered_map<int, std::tuple<double, double>> map1 = instance.getTargetCoords();
-    int src =0;
+    int src = 0;
     int dest = 9;
-    void printArray(double ** arr, unordered_map<int, std::tuple<double, double>> map1);
-    double ** costMatrix(unordered_map<int, std::tuple<double, double>> map1);
-    double ** Cij;
+    // void printArray(double ** arr, unordered_map<int, std::tuple<double, double>> map1);
+    // double ** costMatrix(unordered_map<int, std::tuple<double, double>> map1);
+    // double ** Cij;
     
     //Checking to see if the Map is read and prints correctly
     //for (int l = 0; l < instance.getNumTargets(); ++l)
     //std::cout << map1.find(l)->first <<"\t" <<get<0>(map1.find(l)->second)<<"\t" << get<1>(map1.at(l)) << endl;
     
     
-    Cij = costMatrix(map1);
-    printArray(Cij, map1) ;
+    // Cij = costMatrix(map1);
+    // printArray(Cij, map1) ;
 
     IloEnv env;
     
@@ -45,12 +47,19 @@ int main(int argc, char* argv[]){
         isVisit[i][j] = IloNumVar(env, 0,1,ILOINT);
     }
     //defining expression for objective
+    std::cout << "here" << std::endl;
     IloExpr obj(env);
     for(int i=0; i< int(map1.size()); i++) {
-        for(int j=0; j< int(map1.size()); j++) 
-            obj += Cij[i][j] * isVisit[i][j];
-        
+        for(int j=0; j< int(map1.size()); j++) {
+            auto target_i = instance.getTargetCoords().at(i);
+            auto target_j = instance.getTargetCoords().at(j);
+            double cost = 0.0; 
+            if (i == j) cost = 10000000;
+            else cost = std::hypot(std::get<0>(target_i) - std::get<0>(target_j), std::get<1>(target_i) - std::get<1>(target_j));
+            obj += cost * isVisit[i][j];
+        }  
     }
+
     //adding the objective to solve the model
     model.add(IloMinimize(env, obj));
     obj.end();
@@ -96,28 +105,28 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
-void printArray(double ** arr, unordered_map<int, std::tuple<double, double>> _targetCoords ){
+// void printArray(double ** arr, unordered_map<int, std::tuple<double, double>> _targetCoords ){
    
-     for (int i =0; i < int(_targetCoords.size()); ++i){
-         for (int j =0; j <int(_targetCoords.size()); ++j)
-         cout << arr[i][j]<<"\t";
-     cout << endl;}
- }
- double ** costMatrix(unordered_map<int, std::tuple<double, double>> _targetCoords){
+//      for (int i =0; i < int(_targetCoords.size()); ++i){
+//          for (int j =0; j <int(_targetCoords.size()); ++j)
+//          cout << arr[i][j]<<"\t";
+//      cout << endl;}
+//  }
+//  double ** costMatrix(unordered_map<int, std::tuple<double, double>> _targetCoords){
      
-     double ** arr = new double*[int(_targetCoords.size())];
-     for (int i =0; i < int(_targetCoords.size()); ++i){
-         arr[i] = new double[int(_targetCoords.size())];
-         for (int j =0; j <int(_targetCoords.size()); ++j){
+//      double ** arr = new double*[int(_targetCoords.size())];
+//      for (int i =0; i < int(_targetCoords.size()); ++i){
+//          arr[i] = new double[int(_targetCoords.size())];
+//          for (int j =0; j <int(_targetCoords.size()); ++j){
                  
-         if ( i ==j)
-         arr[i][j] =  std::numeric_limits<double>::infinity();
-         else
-         arr[i][j] = sqrt(pow(get<0>(_targetCoords.at(i)) - get<0>(_targetCoords.at(j)), 2) + pow(get<1>(_targetCoords.at(i)) - get<1>(_targetCoords.at(j)), 2));          
+//          if ( i ==j)
+//          arr[i][j] =  std::numeric_limits<double>::infinity();
+//          else
+//          arr[i][j] = sqrt(pow(get<0>(_targetCoords.at(i)) - get<0>(_targetCoords.at(j)), 2) + pow(get<1>(_targetCoords.at(i)) - get<1>(_targetCoords.at(j)), 2));          
             
-         }
-     }
- return arr;
- }
+//          }
+//      }
+//  return arr;
+//  }
 
 
