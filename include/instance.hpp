@@ -59,9 +59,9 @@ class Instance {
         int getNumSatellitesPerTarget() const { return _numSatellitesPerTarget; };
         int getNumSatellites() const { return _numSatellites; }
         float getRadius() const { return _radius; };
-        std::unordered_map<int, std::tuple<double, double>> getTargetCoords() const { return _targetCoords; }; 
-        std::unordered_map<int, std::tuple<double, double>> getSatelliteCoords() const { return _satelliteCoords; };
-        std::unordered_map<int, int> getSatelliteMap() const { return _satelliteMap; };
+        const std::unordered_map<int, std::tuple<double, double>> & getTargetCoords() const { return _targetCoords; }; 
+        const std::unordered_map<int, std::tuple<double, double>> & getSatelliteCoords() const { return _satelliteCoords; };
+        const std::unordered_map<int, int> & getSatelliteMap() const { return _satelliteMap; };
 
         void createData(); 
         void writeData(); 
@@ -69,6 +69,9 @@ class Instance {
 
 
 };
+
+
+
 
 
 #endif

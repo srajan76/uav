@@ -11,7 +11,7 @@ using namespace std;
 int main(int argc, char* argv[]){
 
     Instance instance;
-    instance.setName("10-3-5-0.txt");
+    instance.setName("500-3-5-0.txt");
     instance.setPath("../data/");
     instance.readData();
 
@@ -20,37 +20,25 @@ int main(int argc, char* argv[]){
     //std::cout << instance.getRadius() << std::endl;
 
     // Create target coordinate map for the instance
-    std::unordered_map<int, std::tuple<double, double>> map1 = instance.getTargetCoords();
     int src = 0;
     int dest = 9;
-    // void printArray(double ** arr, unordered_map<int, std::tuple<double, double>> map1);
-    // double ** costMatrix(unordered_map<int, std::tuple<double, double>> map1);
-    // double ** Cij;
-    
-    //Checking to see if the Map is read and prints correctly
-    //for (int l = 0; l < instance.getNumTargets(); ++l)
-    //std::cout << map1.find(l)->first <<"\t" <<get<0>(map1.find(l)->second)<<"\t" << get<1>(map1.at(l)) << endl;
-    
-    
-    // Cij = costMatrix(map1);
-    // printArray(Cij, map1) ;
 
     IloEnv env;
     
     IloModel model(env);
     //defining decision variables
     typedef IloArray<IloNumVarArray> NumVarMatrix;
-    NumVarMatrix isVisit(env,int(map1.size()));
-    for(int i=0; i< int(map1.size()); i++) {
-        isVisit[i] = IloNumVarArray(env, int(map1.size()));
-    for(int j=0; j< int(map1.size()); j++) 
+    NumVarMatrix isVisit(env,instance.getNumTargets());
+    for(int i=0; i< instance.getNumTargets(); i++) {
+        isVisit[i] = IloNumVarArray(env, instance.getNumTargets());
+    for(int j=0; j< instance.getNumTargets(); j++) 
         isVisit[i][j] = IloNumVar(env, 0,1,ILOINT);
     }
     //defining expression for objective
-    std::cout << "here" << std::endl;
+    
     IloExpr obj(env);
-    for(int i=0; i< int(map1.size()); i++) {
-        for(int j=0; j< int(map1.size()); j++) {
+    for(int i=0; i< instance.getNumTargets(); i++) {
+        for(int j=0; j< instance.getNumTargets(); j++) {
             auto target_i = instance.getTargetCoords().at(i);
             auto target_j = instance.getTargetCoords().at(j);
             double cost = 0.0; 
@@ -65,10 +53,10 @@ int main(int argc, char* argv[]){
     obj.end();
     //adding constraints
 
-    for(int i=0; i< int(map1.size()); i++) {
+    for(int i=0; i< instance.getNumTargets(); i++) {
         IloExpr rowConstraint(env);
     
-        for(int j=0; j< int(map1.size()); j++) 
+        for(int j=0; j< instance.getNumTargets(); j++) 
          rowConstraint +=  isVisit[i][j];
         if (src != dest && i== dest)
         model.add( rowConstraint ==0);
@@ -76,10 +64,10 @@ int main(int argc, char* argv[]){
         model.add( rowConstraint ==1);
         rowConstraint.end();
     }
-        for(int j=0; j< int(map1.size()); j++) {
+        for(int j=0; j< instance.getNumTargets(); j++) {
         IloExpr colConstraint(env);
     
-        for(int i=0; i< int(map1.size()); i++) 
+        for(int i=0; i< instance.getNumTargets(); i++) 
          colConstraint +=  isVisit[i][j];
         if (src != dest && j== src)
         model.add( colConstraint ==0);
@@ -105,28 +93,6 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
-// void printArray(double ** arr, unordered_map<int, std::tuple<double, double>> _targetCoords ){
-   
-//      for (int i =0; i < int(_targetCoords.size()); ++i){
-//          for (int j =0; j <int(_targetCoords.size()); ++j)
-//          cout << arr[i][j]<<"\t";
-//      cout << endl;}
-//  }
-//  double ** costMatrix(unordered_map<int, std::tuple<double, double>> _targetCoords){
-     
-//      double ** arr = new double*[int(_targetCoords.size())];
-//      for (int i =0; i < int(_targetCoords.size()); ++i){
-//          arr[i] = new double[int(_targetCoords.size())];
-//          for (int j =0; j <int(_targetCoords.size()); ++j){
-                 
-//          if ( i ==j)
-//          arr[i][j] =  std::numeric_limits<double>::infinity();
-//          else
-//          arr[i][j] = sqrt(pow(get<0>(_targetCoords.at(i)) - get<0>(_targetCoords.at(j)), 2) + pow(get<1>(_targetCoords.at(i)) - get<1>(_targetCoords.at(j)), 2));          
-            
-//          }
-//      }
-//  return arr;
-//  }
+
 
 
