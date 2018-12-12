@@ -19,10 +19,13 @@ using namespace std;
 int
 main (int argc, char **argv)
 {
+   std::unordered_map<int, std::tuple<double, double>> targetCoords;
    IloEnv env;
    try {
       IloModel model(env);
+      
       IloNumVarArray vars(env);
+      
       vars.add(IloNumVar(env, 0.0, 40.0));
       vars.add(IloNumVar(env));
       vars.add(IloNumVar(env));
@@ -49,7 +52,7 @@ main (int argc, char **argv)
       cerr << "Unknown exception caught" << endl;
    }
 
-   env.end();
-
+ 
+    env.end();
    return 0;
 }

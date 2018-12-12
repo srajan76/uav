@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
         instance.setNumSatellites();
         instance.setRadius(radius);
 
-        std::string name = std::to_string(numTargets) + "-" + to_string(numSatellitesPerTarget) + "-" + to_string(count) + ".txt";
+        std::string name = std::to_string(numTargets) + "-" + to_string(numSatellitesPerTarget) + "-" + to_string(radius)+ "-" + to_string(count) + ".txt";
         count += 1;
         instance.setName(name);
         instance.setSeed(uniform(rng));
