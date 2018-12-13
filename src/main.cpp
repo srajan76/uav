@@ -16,16 +16,15 @@ int main(int argc, char* argv[]){
     instance.readData();
 
 
-    //random check to see if data is reading ok
-    //std::cout << instance.getRadius() << std::endl;
-
-    // Create target coordinate map for the instance
-    int src = 0;
-    int dest = 9;
-
-    IloEnv env;
+    //Defining Source and destination here since hpath.hpp and hpath.cpp
+    // has not been fully created
+    int src = 250;
+    int dest = 289;
     
+    //CPEX MODEL DEFINITION
+    IloEnv env;
     IloModel model(env);
+
     //defining decision variables
     typedef IloArray<IloNumVarArray> NumVarMatrix;
     NumVarMatrix isVisit(env,instance.getNumTargets());
@@ -34,30 +33,27 @@ int main(int argc, char* argv[]){
     for(int j=0; j< instance.getNumTargets(); j++) 
         isVisit[i][j] = IloNumVar(env, 0,1,ILOINT);
     }
-    //defining expression for objective
-    
+
+    //defining expression for objective and adding the objective to solve the model
     IloExpr obj(env);
     for(int i=0; i< instance.getNumTargets(); i++) {
         for(int j=0; j< instance.getNumTargets(); j++) {
             auto target_i = instance.getTargetCoords().at(i);
             auto target_j = instance.getTargetCoords().at(j);
             double cost = 0.0; 
-            if (i == j) cost = 10000000;
-            else cost = std::hypot(std::get<0>(target_i) - std::get<0>(target_j), std::get<1>(target_i) - std::get<1>(target_j));
+            if (i == j) cost = CPX_INFBOUND;
+             else cost = std::hypot(std::get<0>(target_i) - std::get<0>(target_j), std::get<1>(target_i) - std::get<1>(target_j));
             obj += cost * isVisit[i][j];
         }  
     }
-
-    //adding the objective to solve the model
     model.add(IloMinimize(env, obj));
     obj.end();
+    
     //adding constraints
-
     for(int i=0; i< instance.getNumTargets(); i++) {
         IloExpr rowConstraint(env);
-    
         for(int j=0; j< instance.getNumTargets(); j++) 
-         rowConstraint +=  isVisit[i][j];
+            rowConstraint +=  isVisit[i][j];
         if (src != dest && i== dest)
         model.add( rowConstraint ==0);
         else
@@ -77,18 +73,33 @@ int main(int argc, char* argv[]){
     }
         
     
-    
+    //Initialize and inititate solving the model by CPLEX
     IloCplex cplex(model);
     cplex.extract(model);
     cplex.solve();
       
 
-     //IloNumArray vals(env);
+    // OUTPUT      
       env.out() << "Solution status = " << cplex.getStatus() << endl;
       env.out() << "Solution value = " << cplex.getObjValue() << endl;
-      //cplex.getValues(vals, vars);
-      //env.out() << "Values = " << vals << endl;
-
+      
+      
+      lemon::ListGraph optimal_path;
+      lemon::ListGraph::Node node_optimal_path [instance.getNumTargets()];
+      for (int i =0;i< instance.getNumTargets(); i++)
+       node_optimal_path[i] =optimal_path.addNode();
+    cout << countNodes(optimal_path) <<endl;
+      for (int i =0;i< instance.getNumTargets(); i++) {
+          
+          for (int j =0;j< instance.getNumTargets(); j++) {
+              
+              if (cplex.getValue(isVisit[i][j] ==1))
+              optimal_path.addEdge(node_optimal_path[i], node_optimal_path[j]);
+              //cout << cplex.getValue(isVisit[i][j]) << "\t";
+          }
+       //cout << endl;
+      }
+      cout << countEdges(optimal_path) <<endl;
     env.end();
 
     return 0;

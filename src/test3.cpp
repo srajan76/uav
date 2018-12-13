@@ -39,7 +39,7 @@ main (int argc, char **argv)
          throw(-1);
       }
 
-     IloNumArray vals(env);
+     IloNumVarArray vals(env);
       env.out() << "Solution status = " << cplex.getStatus() << endl;
       env.out() << "Solution value = " << cplex.getObjValue() << endl;
       cplex.getValues(vals, vars);
