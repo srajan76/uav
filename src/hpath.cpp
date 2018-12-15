@@ -103,4 +103,5 @@ void HamiltonianPath::addVariables() {
 void HamiltonianPath::addConstraints() {
 
 
+return;
 };
