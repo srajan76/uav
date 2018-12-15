@@ -11,6 +11,24 @@
         "stdexcept": "cpp",
         "type_traits": "cpp",
         "typeinfo": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "strstream": "cpp",
+        "cfenv": "cpp",
+        "cctype": "cpp",
+        "cmath": "cpp",
+        "cstdarg": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "string": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "vector": "cpp",
+        "memory": "cpp",
+        "utility": "cpp"
     }
 }
