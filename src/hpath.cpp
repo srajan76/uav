@@ -78,3 +78,29 @@ void HamiltonianPath::createEdges() {
     return;
 
 };
+
+void HamiltonianPath::addVariables() { 
+
+    Model model = getModel();
+    model.getModel().setName(getInstance().getName().c_str());
+
+    IloNumVarArray x(model.getEnv());
+    model.getVariables().insert({"x", x});
+
+    IloNumArray cost(model.getEnv());
+
+    for (auto const & edge : getEdges()) {
+        std::string varname = "x_" + std::to_string(edge.from()) +  "_" + std::to_string(edge.to());
+        cost.add(edge.cost());
+        IloNumVar var(model.getEnv(), 0, 1, ILOINT, varname.c_str());
+        model.getVariables().at("x").add(var);
+    }
+
+    model.getModel().add(IloMinimize(model.getEnv(), IloScalProd(cost, model.getVariables().at("x"))));
+    return;
+};
+
+void HamiltonianPath::addConstraints() {
+
+
+};

@@ -56,7 +56,7 @@ class HamiltonianPath {
         HamiltonianPath(const Instance & instance);
 
         const Instance & getInstance() const { return _instance; };
-        const Model & getModel() const { return _model; };
+        Model & getModel() { return _model; };
         const std::unordered_map<int, std::tuple<double, double>> & getVertexCoords() const { 
             return _vertexCoords; 
         };
@@ -114,7 +114,6 @@ class HamiltonianPath {
         
         void addVariables();
         void addConstraints();
-        void setParameters();
         void solve();
         void populateSolution();
 

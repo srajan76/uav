@@ -15,9 +15,9 @@ class Edge {
         Edge(int i, int j, double cost) : _from(i), _to(j), _cost(cost) {};
 
         void setCost(double cost) { _cost = cost; };
-        int from() { return _from; };
-        int to() { return _to; };
-        double cost() { return _cost; };
+        int from() const { return _from; };
+        int to() const { return _to; };
+        double cost() const { return _cost; };
 };
 
 #endif 
