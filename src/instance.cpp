@@ -1,10 +1,20 @@
 #include "instance.hpp"
-using namespace std;
+
+Instance::Instance() : 
+    _name(), _path(), _seed(2018), 
+    _grid(std::make_tuple(100.0, 100.0)),
+    _source(), _destination(), 
+    _numTargets(10), 
+    _targetCoords(), 
+    _numSatellitesPerTarget(3), 
+    _numSatellites(24), _radius(5), 
+    _satelliteMap(), _satelliteCoords() 
+    {};
 
 void Instance::createData() {
-    mt19937 generator(getSeed());
+    std::mt19937 generator(getSeed());
     setGrid(std::make_tuple(100.0, 100.0));
-    
+
     // creating target coordinate generator engine 
     double minCoord = 0.0 + getRadius();
     double maxXCoord = getXGridSize() - getRadius();
@@ -20,15 +30,21 @@ void Instance::createData() {
     std::unordered_map<int, int> satelliteMap; 
     std::unordered_map<int, std::tuple<double, double>> satelliteCoords; 
 
-    for (auto i=0; i<getNumTargets(); ++i) {
+    for (auto i=0; i<getNumTargets()-2; ++i) {
         std::tuple<double, double> coord = std::make_tuple(xCoordinateGenerator(generator), yCoordinateGenerator(generator));
         targetCoords.insert({i, coord});
     }
+
+    targetCoords.insert({getNumTargets()-2, std::make_tuple(5.0, 5.0)});
+    targetCoords.insert({getNumTargets()-1, std::make_tuple(95.0, 5.0)});
+    setSource(getNumTargets()-2);
+    setDestination(getNumTargets()-1);
 
     int satelliteCount = 0;
 
     for (auto const & targetCoord : targetCoords) {
         int targetIndex = targetCoord.first;
+        if (targetIndex == getSource() || targetIndex == getDestination()) continue;
         double targetXCoord = std::get<0>(targetCoord.second);
         double targetYCoord = std::get<1>(targetCoord.second);
         for (auto i=0; i<getNumSatellitesPerTarget(); ++i) {
@@ -50,7 +66,7 @@ void Instance::createData() {
 }
 
 void Instance::writeData() {
-    ofstream outfile;
+    std::ofstream outfile;
     std::string file = getPath() + getName();
     outfile.open(file);
 
@@ -61,14 +77,16 @@ void Instance::writeData() {
     outfile << getSeed() << std::endl << 
         getNumTargets() << std::endl << 
         getNumSatellitesPerTarget() << std::endl << 
-        getRadius() << std::endl << std::endl;
+        getRadius() << std::endl << std::endl << 
+        getSource() << std::endl << getDestination() << 
+        std::endl << std::endl;
 
     for (auto i=0; i<getNumTargets(); ++i) { 
         int targetIndex = i;
         std::tuple<double, double> coord = targetCoords.at(i);
         outfile << targetIndex << " " << 
-            std::setprecision(4) << fixed << std::get<0>(coord) << " " << 
-            std::setprecision(4) << fixed << std::get<1>(coord) << std::endl;
+            std::setprecision(4) << std::fixed << std::get<0>(coord) << " " << 
+            std::setprecision(4) << std::fixed << std::get<1>(coord) << std::endl;
     }
     outfile << std::endl;
 
@@ -76,8 +94,8 @@ void Instance::writeData() {
         int targetIndex = satelliteMap.at(i);
         std::tuple<double, double> coord = satelliteCoords.at(i);
         outfile << targetIndex << " " << 
-            std::setprecision(4) << fixed << std::get<0>(coord) << " " << 
-            std::setprecision(4) << fixed << std::get<1>(coord) << std::endl;
+            std::setprecision(4) << std::fixed << std::get<0>(coord) << " " << 
+            std::setprecision(4) << std::fixed << std::get<1>(coord) << std::endl;
     }
     
     outfile.close();
@@ -88,7 +106,7 @@ void Instance::writeData() {
 
 
 void Instance::readData() {
-    ifstream infile;
+    std::ifstream infile;
     std::string file = getPath() + getName();
     infile.open(file);
     if (!infile) {
@@ -97,20 +115,25 @@ void Instance::readData() {
     }
 
     int numTargets, numSatellitesPerTarget, numSatellites;
-    int seed; 
+    int seed, source, destination; 
     float radius;
     std::unordered_map<int, std::tuple<double, double>> targetCoords;
     std::unordered_map<int, int> satelliteMap; 
     std::unordered_map<int, std::tuple<double, double>> satelliteCoords; 
+    std::unordered_map<int, std::vector<int>> targetToSatelliteMap;
 
-    infile >> seed >> numTargets >> numSatellitesPerTarget >> radius; 
-    numSatellites = numTargets * numSatellitesPerTarget;
+    infile >> seed >> numTargets >> 
+        numSatellitesPerTarget >> radius >> 
+        source >> destination; 
+    numSatellites = (numTargets - 2) * numSatellitesPerTarget;
 
     for (auto i=0; i<numTargets; ++i) {
         int index; 
         double x, y;
         infile >> index >> x >> y;
         targetCoords.insert({index, std::make_tuple(x, y)});
+        if (index != source && index != destination)
+            targetToSatelliteMap[index] = {};
     }
 
     for (auto i=0; i<numSatellites; ++i) {
@@ -119,10 +142,13 @@ void Instance::readData() {
         infile >> targetIndex >> x >> y;
         satelliteCoords.insert({i, std::make_tuple(x, y)});
         satelliteMap.insert({i, targetIndex});
+        targetToSatelliteMap[targetIndex].push_back(i);
     }
 
     infile.close();
     setNumTargets(numTargets);
+    setSource(source);
+    setDestination(destination);
     setNumSatellitesPerTarget(numSatellitesPerTarget);
     setNumSatellites();
     setSeed(seed);
@@ -130,6 +156,7 @@ void Instance::readData() {
 
     setTargetCoords(targetCoords);
     setSatelliteCoords(satelliteCoords);
+    setTargetToSatelliteMap(targetToSatelliteMap);
     setSatelliteMap(satelliteMap);
     
     return;

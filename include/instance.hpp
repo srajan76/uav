@@ -25,42 +25,61 @@ class Instance {
         std::string _path = "./data/";
         int _seed = 2018;
         std::tuple<double, double> _grid;
-        int _numTargets = 10;
+        int _source;
+        int _destination;
+        int _numTargets = 12;
         std::unordered_map<int, std::tuple<double, double>> _targetCoords;
         int _numSatellitesPerTarget = 3;
         int _numSatellites = 30;
         float _radius = 5;
         std::unordered_map<int, int> _satelliteMap; // satellite id -> target id
+        std::unordered_map<int, std::vector<int>> _targetToSatelliteMap;
         std::unordered_map<int, std::tuple<double, double>> _satelliteCoords; 
         
 
     public:
-        Instance() : _name(), _path(), _seed(2018), _grid(std::make_tuple(100.0, 100.0)), _numTargets(10), _targetCoords(), 
-            _numSatellitesPerTarget(3), _numSatellites(30), _radius(5), _satelliteMap(), _satelliteCoords() {};
+        Instance();
 
         void setName(std::string name) { _name = name; }; 
         void setPath(std::string path) { _path = path; };
         void setSeed(int seed) { _seed = seed; };
         void setGrid(std::tuple<double, double> grid) { _grid = grid; };
+        void setSource(int source) { _source = source; };
+        void setDestination(int destination) { _destination = destination; }; 
         void setNumTargets(int numTargets) { _numTargets = numTargets; };
-        void setNumSatellites() { _numSatellites = _numTargets * _numSatellitesPerTarget; };
+        void setNumSatellites() { _numSatellites = (_numTargets - 2) * _numSatellitesPerTarget; };
         void setNumSatellitesPerTarget(int numSatellitesPerTargets) { _numSatellitesPerTarget = numSatellitesPerTargets; };
         void setRadius(float radius) { _radius = radius; };
-        void setTargetCoords(std::unordered_map<int, std::tuple<double, double>> targetCoords) { _targetCoords = targetCoords; }; 
-        void setSatelliteCoords(std::unordered_map<int, std::tuple<double, double>> satelliteCoords) { _satelliteCoords = satelliteCoords; }; 
-        void setSatelliteMap(std::unordered_map<int, int> satelliteMap) { _satelliteMap = satelliteMap; };
+        void setTargetCoords(const std::unordered_map<int, std::tuple<double, double>> & targetCoords) { 
+            _targetCoords = targetCoords; 
+        }; 
+        void setSatelliteCoords(const std::unordered_map<int, std::tuple<double, double>> & satelliteCoords) { 
+            _satelliteCoords = satelliteCoords; 
+        }; 
+        void setSatelliteMap(const std::unordered_map<int, int> & satelliteMap) { 
+            _satelliteMap = satelliteMap; 
+        };
+        void setTargetToSatelliteMap(const std::unordered_map<int, std::vector<int>> targetToSatelliteMap) {
+            _targetToSatelliteMap = targetToSatelliteMap;
+        }
 
         std::string getName() const { return _name; }; 
         std::string getPath() const { return _path; }; 
         int getSeed() const { return _seed; };
         double getXGridSize() const { return std::get<0>(_grid); };
         double getYGridSize() const { return std::get<1>(_grid); };
+        int getSource() const { return _source; };
+        int getDestination() const { return _destination; };
         int getNumTargets() const { return _numTargets; }; 
         int getNumSatellitesPerTarget() const { return _numSatellitesPerTarget; };
         int getNumSatellites() const { return _numSatellites; }
         float getRadius() const { return _radius; };
         const std::unordered_map<int, std::tuple<double, double>> & getTargetCoords() const { return _targetCoords; }; 
         const std::unordered_map<int, std::tuple<double, double>> & getSatelliteCoords() const { return _satelliteCoords; };
+<<<<<<< HEAD
+=======
+        const std::vector<int> & getSatellitesAtTarget(int i) { return _targetToSatelliteMap.at(i); }
+>>>>>>> 1e0d35b3f306cc666082a713b370d05218c15518
         const std::unordered_map<int, int> & getSatelliteMap() const { return _satelliteMap; };
 
         void createData(); 

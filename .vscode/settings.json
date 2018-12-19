@@ -12,6 +12,7 @@
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "algorithm": "cpp",
+<<<<<<< HEAD
         "array": "cpp",
         "atomic": "cpp",
         "*.tcc": "cpp",
@@ -29,10 +30,18 @@
         "csignal": "cpp",
         "cstdarg": "cpp",
         "cstdint": "cpp",
+=======
+        "strstream": "cpp",
+        "cfenv": "cpp",
+        "cctype": "cpp",
+        "cmath": "cpp",
+        "cstdarg": "cpp",
+>>>>>>> 1e0d35b3f306cc666082a713b370d05218c15518
         "cstdio": "cpp",
         "cstdlib": "cpp",
         "cstring": "cpp",
         "ctime": "cpp",
+<<<<<<< HEAD
         "cuchar": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
@@ -66,5 +75,16 @@
         "typeindex": "cpp",
         "utility": "cpp",
         "valarray": "cpp"
+=======
+        "cwchar": "cpp",
+        "string": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "vector": "cpp",
+        "memory": "cpp",
+        "utility": "cpp"
+>>>>>>> 1e0d35b3f306cc666082a713b370d05218c15518
     }
 }
