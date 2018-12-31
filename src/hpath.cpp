@@ -3,6 +3,7 @@
 #include "edge.hpp"
 #include "hpath.hpp"
 
+
 HamiltonianPath::HamiltonianPath(const Instance & instance) :
     _instance(instance), _model(Model()), 
     _vertexCoords(), _isTarget(), _isSatellite(), 
@@ -31,8 +32,8 @@ void HamiltonianPath::populatePathData(std::vector<int> & targets,
 
     int vertexIndex = 0;
     for (int target : targets) {
-        if (target == sourceTarget) setSource(vertexIndex);
-        if (target == destinationTarget) setDestination(vertexIndex);
+        if (target == sourceTarget) HamiltonianPath::setSource(vertexIndex);
+        if (target == destinationTarget) HamiltonianPath::setDestination(vertexIndex);
         vertexCoords.insert({vertexIndex, targetCoords.at(target)});
         isTarget[vertexIndex] = true;
         vertexToTargetMap.insert({vertexIndex, target});
@@ -64,7 +65,7 @@ void HamiltonianPath::createEdges() {
         for (int j=i+1; j<getNumVertices(); ++j) {
             auto ith = vertexCoords.at(i);
             auto jth = vertexCoords.at(j);
-            if (i == getSource() && j == getDestination()) 
+            if (i == HamiltonianPath::getSource() && j ==HamiltonianPath:: getDestination()) 
                 continue;
             double cost = std::hypot(std::get<0>(ith) - std::get<0>(jth), std::get<1>(ith) - std::get<1>(jth));
             edges.push_back(Edge(i, j, cost));
@@ -79,14 +80,14 @@ void HamiltonianPath::createEdges() {
 
 };
 
-void HamiltonianPath::addVariables() { 
+Model  HamiltonianPath::addVariablesandConstraints() { 
 
     Model model = getModel();
     model.getModel().setName(getInstance().getName().c_str());
-
     IloNumVarArray x(model.getEnv());
     model.getVariables().insert({"x", x});
-
+    
+    
     IloNumArray cost(model.getEnv());
 
     for (auto const & edge : getEdges()) {
@@ -95,13 +96,40 @@ void HamiltonianPath::addVariables() {
         IloNumVar var(model.getEnv(), 0, 1, ILOINT, varname.c_str());
         model.getVariables().at("x").add(var);
     }
-
+    
+    
+    for (int i =0; i<getNumVertices(); ++i){
+        IloExpr rowconstraint(model.getEnv());
+        std::set<int> index ;
+        for (int j=0; j < getNumVertices(); ++j) {
+            auto itr = getEdgeMap().find(std::make_tuple(i,j));
+            if (getEdgeMap().end() != itr)       
+            index.insert(itr->second);
+        }
+            for ( auto const & i : index)
+                rowconstraint += model.getVariables().at("x")[i];
+    int EQ =2;
+    if( i == HamiltonianPath::getSource()|| i == HamiltonianPath:: getDestination())
+    EQ =1;
+    IloRange con1(model.getEnv(),EQ,rowconstraint,EQ);
+    model.getConstraints().push_back(con1);
+    model.getModel().add(con1);
+    }
     model.getModel().add(IloMinimize(model.getEnv(), IloScalProd(cost, model.getVariables().at("x"))));
-    return;
+    return model;
 };
 
-void HamiltonianPath::addConstraints() {
 
+void HamiltonianPath::solve(){
+Model  model = getModel();
 
-return;
+IloCplex cplex(model.getEnv());
+cplex.extract(model.getModel());
+cplex.solve();
+
+return;    
 };
+
+
+
+

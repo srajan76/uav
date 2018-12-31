@@ -29,6 +29,10 @@
         "set": "cpp",
         "vector": "cpp",
         "memory": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "ostream": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "iosfwd": "cpp"
     }
 }

@@ -36,7 +36,7 @@ void Instance::createData() {
     }
 
     targetCoords.insert({getNumTargets()-2, std::make_tuple(5.0, 5.0)});
-    targetCoords.insert({getNumTargets()-1, std::make_tuple(95.0, 5.0)});
+    targetCoords.insert({getNumTargets()-1, std::make_tuple(95.0, 95.0)});
     setSource(getNumTargets()-2);
     setDestination(getNumTargets()-1);
 

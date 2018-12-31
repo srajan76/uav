@@ -5,6 +5,10 @@
 
 #include <vector>
 #include <tuple>
+#include <lemon/list_graph.h>
+#include <lemon/hao_orlin.h>
+#include <lemon/nagamochi_ibaraki.h>
+#include <lemon/connectivity.h>
 
 class Instance;
 class Model;
@@ -112,11 +116,13 @@ class HamiltonianPath {
             int destinationTarget);
         void createEdges();
         
-        void addVariables();
-        void addConstraints();
+        Model  addVariablesandConstraints();
         void solve();
         void populateSolution();
-
+        
 };
+
+        
+
 
 #endif
