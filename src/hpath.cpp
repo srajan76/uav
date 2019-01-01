@@ -12,7 +12,7 @@ HamiltonianPath::HamiltonianPath(const Instance & instance) :
 
 
 void HamiltonianPath::populatePathData(std::vector<int> & targets, 
-    std::vector<int> satellites, 
+    std::vector<int> & satellites, 
     int sourceTarget, 
     int destinationTarget) {
 
@@ -102,5 +102,8 @@ void HamiltonianPath::addVariables() {
 
 void HamiltonianPath::addConstraints() {
 
+    Model model = getModel();
+
+    
 
 };

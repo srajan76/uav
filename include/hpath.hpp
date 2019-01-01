@@ -107,7 +107,7 @@ class HamiltonianPath {
         void setPathCost(double pathCost) { _pathCost = pathCost; };
 
         void populatePathData(std::vector<int> & targets, 
-            std::vector<int> satellites, 
+            std::vector<int> & satellites, 
             int sourceTarget, 
             int destinationTarget);
         void createEdges();
