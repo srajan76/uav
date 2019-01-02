@@ -121,5 +121,14 @@ cplex.solve();
     std::cout<<"SOLVED!!"<<std::endl;
     outfile.close();
    
+
+    auto edges = hPath.getEdges();
+    auto edgeMap = hPath.getEdgeMap();
+    std::cout << "created edges " << std::endl;
+    
+
     return 0;
 }
+
+
+

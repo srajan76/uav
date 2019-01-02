@@ -9,3 +9,4 @@ add_executable(generate-data generate-data.cpp instance.cpp)
 
 target_link_libraries(main ${CPLEX_LIBRARIES} ${LEMON_LIBRARIES} ${CPP_OPTION_PARSER} ${CMAKE_DL_LIBS})
 target_link_libraries(generate-data ${CPP_OPTION_PARSER})
+
