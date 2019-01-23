@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
     opt.add_option("p", "instance_path", "instance_path", "../data/" );
     opt.add_option("n", "num_instances", "number of instances", "1" );
     opt.add_option("r", "radius", "satellite radius", "5");
+    opt.add_option("u", "turn_radius", "vehicle turn radius", "5");
 
     // parse the options and verify that all went well
     bool correct_parsing = opt.parse_options(argc, argv);
@@ -30,6 +31,7 @@ int main(int argc, char* argv[]) {
     int numSatellitesPerTarget = op::str2int(opt["s"]);
     std::string path = opt["p"];
     float radius = op::str2float(opt["r"]);
+    double turnRadius = op::str2double(opt["u"]);
 
     std::vector<Instance> instances(numInstances, Instance());
     int count = 0;
@@ -45,6 +47,7 @@ int main(int argc, char* argv[]) {
         instance.setNumSatellitesPerTarget(numSatellitesPerTarget);
         instance.setNumSatellites();
         instance.setRadius(radius);
+        instance.setTurnRadius(turnRadius);
 
         std::string name = std::to_string(numTargets) + "-" 
             + to_string(numSatellitesPerTarget) + "-" 

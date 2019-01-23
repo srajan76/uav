@@ -116,7 +116,7 @@ class HamiltonianPath {
             int destinationTarget);
         void createEdges();
         
-        Model  addVariablesandConstraints();
+        Model addVariablesandConstraints();
         void solve();
         void populateSolution();
         
