@@ -5,10 +5,11 @@
 #include "twostage.hpp"
 #include "dubins.hpp"
 
-TwoStage::TwoStage(const Instance & instance) :
+TwoStage::TwoStage(const Instance & instance,
+    const Scenarios & scenarios) :
     _instance(instance), 
     _model(), 
-    _scenarios(),
+    _scenarios(scenarios),
     _coords(instance.getTargetCoords()), 
     _source(), 
     _destination(), 
@@ -35,6 +36,7 @@ void TwoStage::populateEdges() {
     std::vector<Edge> recourseEdges;
     std::vector<bool> hasRecourseEdge;
     std::unordered_map<std::tuple<int, int>, int> edgeMap;
+    std::vector<std::vector<int>> recoursePaths;
 
     for (int i=0; i<getNumVertices(); ++i) {
         for (int j=0; j<getNumVertices(); ++j) {
@@ -48,8 +50,23 @@ void TwoStage::populateEdges() {
             DubinsPath path = getDubinsShortestPath(qInitial, qFinal, getInstance().getTurnRadius());
             double directCost = path.getLength();
             auto satellites = getInstance().getSatellitesAtTarget(i);
-            if (satellites.size() == 0) hasRecourseEdge.push_back(false);
-            else hasRecourseEdge.push_back(true);
+            double recourseCost;
+            if (satellites.size() == 0) {
+                hasRecourseEdge.push_back(false);
+                recourseEdges.push_back(Edge());
+                recoursePaths.push_back({});
+            }
+            else {
+                hasRecourseEdge.push_back(true);
+                auto kth = satelliteCoords.at(satellites[0]); 
+                std::vector<double> qIntermediate = {std::get<0>(kth), std::get<1>(kth), std::get<2>(kth)};
+                path = getDubinsShortestPath(qInitial, qIntermediate, getInstance().getTurnRadius());
+                recourseCost = path.getLength();
+                path = getDubinsShortestPath(qIntermediate, qFinal, getInstance().getTurnRadius());
+                recourseCost += path.getLength();
+                recourseEdges.push_back(Edge(i, j, recourseCost));
+                recoursePaths.push_back({i, satellites[0], j});
+            }
             edges.push_back(Edge(i, j, directCost));
             edgeMap.insert({std::make_tuple(i, j), edges.size()-1});
         }
@@ -57,6 +74,8 @@ void TwoStage::populateEdges() {
 
     _firstStageEdges = edges;
     _hasRecourseEdge = hasRecourseEdge;
+    _recourseEdges = recourseEdges;
+    _recoursePaths = recoursePaths;
     _edgeMap = edgeMap;
     return;
 }

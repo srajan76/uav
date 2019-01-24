@@ -80,7 +80,6 @@ class DubinsIntermediateResults {
 DubinsPath getDubinsShortestPath(std::vector<double>, std::vector<double>, double);
 DubinsPath getDubinsPath(std::vector<double>, std::vector<double>, double, DubinsPathType);
 std::vector<double> transformPoint(double, const std::vector<double>, SegmentType);
-//std::vector<double>
 
 auto fmodr = [](double x, double y) {return x - y*std::floor(x/y);};
 auto mod2pi = [](double theta) {return fmodr(theta, 2*M_PI);};

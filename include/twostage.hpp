@@ -19,7 +19,7 @@ class TwoStage {
     protected: 
         const Instance & _instance;
         Model _model;
-        Scenarios _scenarios;
+        const Scenarios _scenarios;
         const std::unordered_map<int, std::tuple<double, double, double>> & _coords; 
         int _source;
         int _destination;
@@ -38,7 +38,7 @@ class TwoStage {
         void setDestination() { _destination = _instance.getDestination(); };
 
     public: 
-        TwoStage(const Instance & instance);
+        TwoStage(const Instance & instance, const Scenarios & scenarios);
 
         const Instance & getInstance() const { return _instance; };
         Model & getModel() { return _model; };

@@ -16,7 +16,7 @@ int main(int argc, char* argv[]){
     op::OptionParser opt;
     opt.add_option("h", "help", "shows option help" ); 
     opt.add_option("p", "instance_path", "instance_path", "../data/" );
-    opt.add_option("f", "file", "name of the instance file", "100-3-5-0.txt" );
+    opt.add_option("f", "file", "name of the instance file", "10-1-5-0.txt" );
 
     // parse the options and verify that all went well
     bool correct_parsing = opt.parse_options(argc, argv);
@@ -31,7 +31,17 @@ int main(int argc, char* argv[]){
     instance.setName(opt["f"]);
     instance.setPath(opt["p"]);
     instance.readData();
+
     
+    Scenarios scenarios;
+    scenarios.setSeed(instance.getSeed());
+    scenarios.setNumTargets(instance.getNumTargets());
+    scenarios.generateScenarios();
+    
+    TwoStage formulation(instance, scenarios);
+    formulation.initialize();
+    formulation.populateEdges();
+
 
     
 

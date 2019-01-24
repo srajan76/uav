@@ -128,13 +128,14 @@ void Instance::readData() {
     int numTargets, numSatellitesPerTarget, numSatellites;
     int seed, source, destination; 
     float radius;
+    double turnRadius;
     std::unordered_map<int, std::tuple<double, double, double>> targetCoords;
     std::unordered_map<int, int> satelliteMap; 
     std::unordered_map<int, std::tuple<double, double, double>> satelliteCoords; 
     std::unordered_map<int, std::vector<int>> targetToSatelliteMap;
 
     infile >> seed >> numTargets >> 
-        numSatellitesPerTarget >> radius >> 
+        numSatellitesPerTarget >> radius >> turnRadius >>
         source >> destination; 
     numSatellites = (numTargets - 2) * numSatellitesPerTarget;
 
@@ -143,8 +144,7 @@ void Instance::readData() {
         double x, y, theta;
         infile >> index >> x >> y >> theta;
         targetCoords.insert({index, std::make_tuple(x, y, theta)});
-        if (index != source && index != destination)
-            targetToSatelliteMap[index] = {};
+        targetToSatelliteMap[index] = {};
     }
 
     for (auto i=0; i<numSatellites; ++i) {
@@ -164,6 +164,7 @@ void Instance::readData() {
     setNumSatellites();
     setSeed(seed);
     setRadius(radius);
+    setTurnRadius(turnRadius);
 
     setTargetCoords(targetCoords);
     setSatelliteCoords(satelliteCoords);
