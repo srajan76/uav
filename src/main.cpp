@@ -7,6 +7,7 @@
 #include "model.hpp"
 #include "edge.hpp"
 #include "hpath.hpp"
+#include "scenario_generation.hpp"
 
 using namespace std;
 std::vector<IloRange> generateLazyConstraints(Model & model, HamiltonianPath & hPath, std::unordered_map<std::string, IloNumArray> &variableValues) {
@@ -85,6 +86,7 @@ int main(int argc, char* argv[]){
 
     
     std::vector<int> targetIndexes = {};
+    
     for ( int i =0; i < instance.getNumTargets(); ++i)
     targetIndexes.push_back(i);
     std::vector<int> satelliteIndexes = {};
@@ -93,6 +95,9 @@ int main(int argc, char* argv[]){
     hPath.setDestination(41);
     cout << hPath.getSource()<<"\t"<<hPath.getDestination()<<endl;
     cout <<instance.getSource()<<"\t"<<instance.getDestination()<<endl;
+   
+    scenario_generation sc(targetIndexes);
+    sc.generateScenarios();
 
     hPath.populatePathData(targetIndexes, satelliteIndexes, hPath.getSource(),hPath.getDestination());
     cout << hPath.getSource()<<"\t"<<hPath.getDestination()<<endl;
@@ -112,7 +117,7 @@ int main(int argc, char* argv[]){
 //cplex.solve();
 //cplex.setParam(IloCplex::Param::Output::WriteLevel, 4);
 //cplex.writeSolution(model.getModel().getName());
-cplex.use(addLazyCallback(model.getEnv(), model, hPath));
+//cplex.use(addLazyCallback(model.getEnv(), model, hPath));
 //cplex.writeSolution(model.getModel().getName());
 ofstream outfile;
 outfile.open("ouput");
