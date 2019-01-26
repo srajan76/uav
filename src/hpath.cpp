@@ -2,6 +2,7 @@
 #include "model.hpp"
 #include "edge.hpp"
 #include "hpath.hpp"
+#include "dubins.hpp"
 
 
 HamiltonianPath::HamiltonianPath(const Instance & instance) :
@@ -74,8 +75,8 @@ void HamiltonianPath::createEdges() {
         }
     }
 
-    setEdges(edges);
-    setEdgeMap(edgeMap);
+    _firstStageEdges = edges;
+    _edgeMap = edgeMap;
     return;
 
 };
