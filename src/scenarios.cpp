@@ -40,3 +40,13 @@ std::vector<std::vector<int>> Scenarios::getScenarios(
     
     return reduced;
 };
+
+std::vector<std::vector<int>> Scenarios::getUBScenarios(
+    int batchId) const { 
+    
+    int from = 1000 + 100 * (batchId - 1);
+    int to = 1000 + 100 * batchId;
+    std::vector<std::vector<int>> reduced(&_omega[from], &_omega[to]);
+    
+    return reduced;
+};

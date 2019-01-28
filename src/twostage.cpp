@@ -24,7 +24,9 @@ TwoStage::TwoStage(const Instance & instance,
     _path(), 
     _firstStageCost(), 
     _secondStageCost(), 
-    _pathCost() {};
+    _pathCost(), 
+    _ub(), 
+    _ubRange() {};
 
 void TwoStage::initialize() { 
     setSource(); 
@@ -153,6 +155,7 @@ void TwoStage::solve() {
     IloCplex cplex(_model.getEnv());
     cplex.extract(_model.getModel());
     cplex.exportModel("test.lp");
+    cplex.setOut(_model.getEnv().getNullStream());
     cplex.use(addLazyCallback(_model.getEnv(), 
         _model,
         _firstStageEdges, 
@@ -220,6 +223,7 @@ void TwoStage::solve(int batchId,
     IloCplex cplex(_model.getEnv());
     cplex.extract(_model.getModel());
     cplex.exportModel("test1.lp");
+    cplex.setOut(_model.getEnv().getNullStream());
     cplex.use(addLazyCallback(_model.getEnv(), 
         _model,
         _firstStageEdges, 
@@ -256,6 +260,7 @@ void TwoStage::solve(int batchId,
     }
 
     computePath(solutionEdges);
+    computeUB(solutionEdges);
     _firstStageCost = firstStageCost;
     _secondStageCost = secondStageCost;
     _pathCost = firstStageCost + secondStageCost;
@@ -278,3 +283,62 @@ void TwoStage::computePath(
     _path = solution;
     return;
 };
+
+void TwoStage::computeUB(
+    std::vector<std::tuple<int, int>> & edges) {
+    
+    std::vector<double> batchUB;
+    for (int i=1; i<11; ++i) {
+        auto scenarios = _scenarios.getUBScenarios(i);
+        assert(scenarios.size() == 100);
+        double firstStageCost = 0.0;
+        double secondStageCost = 0.0;
+
+        for (int j=0; j<edges.size(); ++j) {
+            int from = std::get<0>(edges[j]);
+            int to = std::get<1>(edges[j]);
+            int edgeId = _edgeMap.at(std::make_tuple(from, to));
+            firstStageCost += _firstStageEdges[edgeId].cost();
+            auto recourseEdge = _recourseEdges[edgeId];
+            double recourseCost = 0.0;
+            if (_hasRecourseEdge[edgeId]) {
+                recourseCost = recourseEdge.cost() - 
+                    _firstStageEdges[i].cost();
+                double multiplier = 0;
+                for (int k=0; k<scenarios.size(); ++k) 
+                    multiplier += scenarios[k][from];
+                recourseCost *= (multiplier/scenarios.size());
+            }
+            secondStageCost += recourseCost;
+        }  
+        std::cout << firstStageCost << ", " << secondStageCost << std::endl;
+        batchUB.push_back(firstStageCost + secondStageCost);  
+    }
+
+    // for (auto elem : batchUB) 
+    //     std::cout << elem << std::endl;
+
+    double sum = std::accumulate(batchUB.begin(), 
+        batchUB.end(), 0.0);
+    double mean = sum / batchUB.size();
+
+    std::vector<double> diff(batchUB.size());
+    std::transform(
+        batchUB.begin(), 
+        batchUB.end(), 
+        diff.begin(), 
+        [mean](double x) { return x - mean; });
+
+    double sqSum = std::inner_product(
+        diff.begin(), diff.end(), diff.begin(), 0.0);
+    double stddev = std::sqrt(sqSum / (batchUB.size()-1));
+
+    _ub = std::make_tuple(mean, stddev);
+    double kappa = 2.2621; // alpha = 0.05, degrees of freedom = 9
+
+    double lower = mean - (kappa*stddev)/std::sqrt(batchUB.size());
+    double upper = mean + (kappa*stddev)/std::sqrt(batchUB.size());
+
+    _ubRange = std::make_tuple(lower, upper);
+    return;
+}

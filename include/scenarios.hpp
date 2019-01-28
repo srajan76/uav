@@ -25,6 +25,8 @@ class Scenarios {
         void generateScenarios();
         std::vector<std::vector<int>> getScenarios(
             int batchId, int scenariosPerBatch) const;
+        std::vector<std::vector<int>> getUBScenarios(
+            int batchId) const;
 };
 
 #endif 

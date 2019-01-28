@@ -35,12 +35,15 @@ class TwoStage {
         double _firstStageCost;
         double _secondStageCost;
         double _pathCost;
+        std::tuple<double, double> _ub;
+        std::tuple<double, double> _ubRange;
     
     private: 
         void setSource()  { _source = _instance.getSource(); };
         void setDestination() { _destination = _instance.getDestination(); };
         void populateConstraints();
         void computePath(std::vector<std::tuple<int, int>> &);
+        void computeUB(std::vector<std::tuple<int, int>> & );
 
     public: 
         TwoStage(const Instance & instance, const Scenarios & scenarios);
@@ -62,7 +65,10 @@ class TwoStage {
         double getFirstStageCost() const { return _firstStageCost; };
         double getSecondStageCost() const { return _secondStageCost; };
         double getPathCost() const { return _pathCost; };
+        std::tuple<double, double> getUB() { return _ub; };
+        std::tuple<double, double> getUBRange() { return _ubRange; };
         void setModel(Model & model) { _model = model; };
+
 
         void initialize();
         

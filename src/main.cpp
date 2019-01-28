@@ -37,23 +37,40 @@ int main(int argc, char* argv[]){
     scenarios.setSeed(instance.getSeed());
     scenarios.setNumTargets(instance.getNumTargets());
     scenarios.generateScenarios();
-    
-    TwoStage formulation(instance, scenarios);
-    formulation.initialize();
-    formulation.populateEdges();
-    formulation.solve(1, 100);
-    std::cout << "computed cost : " << 
-        formulation.getPathCost() << std::endl;
-    auto path = formulation.getPath();
 
-    std::cout << "optimal path :";
-    for (int i=0; i<path.size(); ++i) {
-        if (i%10 == 0) 
-            std::cout << std::endl;
-        std::cout << path[i] << " ";
-    }
+    std::vector<double> batchLB;
     
-    // formulation.solve();    
+    for (int i=0; i<10; ++i) {
+        TwoStage formulation(instance, scenarios);
+        formulation.initialize();
+        formulation.populateEdges();
+        formulation.solve(i+1, 100);
+        std::cout << "first stage cost : " << 
+            formulation.getFirstStageCost() << std::endl;
+        std::cout << "computed cost : " << 
+            formulation.getPathCost() << std::endl;
+        auto path = formulation.getPath();
+        
+        batchLB.push_back(formulation.getPathCost());
+        
+        std::cout << "number of vertices in optimal path : " << path.size();
+        for (int i=0; i<path.size(); ++i) {
+            if (i%10 == 0) 
+                std::cout << std::endl;
+            std::cout << path[i] << " ";
+        }
+    
+        std::cout << std::endl;
+        auto ub = formulation.getUB();
+        std::cout << "mean ub: " << std::get<0>(ub) << ", " 
+            << "stddev ub: " << std::get<1>(ub) << std::endl; 
+
+        auto ubRange = formulation.getUBRange();
+        std::cout << "95\% interval UB bounds : [" 
+            << std::get<0>(ubRange) << ", " << std::get<1>(ubRange) 
+            << "]" << std::endl << std::endl;
+    }
+      
 
     return 0;
 }
