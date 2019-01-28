@@ -16,7 +16,8 @@ int main(int argc, char* argv[]){
     op::OptionParser opt;
     opt.add_option("h", "help", "shows option help" ); 
     opt.add_option("p", "instance_path", "instance_path", "../data/" );
-    opt.add_option("f", "file", "name of the instance file", "10-1-5-0.txt" );
+    opt.add_option("f", "file", "name of the instance file", "10-1-5-0.txt" ); 
+    opt.add_option("s", "num_scenarios", "number of scenarios per batch", "100");
 
     // parse the options and verify that all went well
     bool correct_parsing = opt.parse_options(argc, argv);
@@ -39,17 +40,49 @@ int main(int argc, char* argv[]){
     scenarios.generateScenarios();
 
     std::vector<double> batchLB;
+    std::vector<double> ubUpper;
     
     for (int i=0; i<10; ++i) {
         TwoStage formulation(instance, scenarios);
         formulation.initialize();
         formulation.populateEdges();
-        formulation.solve(i+1, 100);
-        formulation.writeSolution(i+1, 100);
-        
+        formulation.solve(i+1, op::str2int(opt["s"]));
         batchLB.push_back(formulation.getPathCost());  
+        auto ubRange = formulation.getUBRange();
+        ubUpper.push_back(std::get<1>(ubRange));
     }
-      
+
+    double maxUpperBound = *(std::max_element(
+        std::begin(ubUpper), 
+        std::end(ubUpper))
+    );
+
+    double sum = std::accumulate(batchLB.begin(), 
+        batchLB.end(), 0.0);
+    double mean = sum / batchLB.size();
+
+    std::vector<double> diff(batchLB.size());
+    std::transform(
+        batchLB.begin(), 
+        batchLB.end(), 
+        diff.begin(), 
+        [mean](double x) { return x - mean; });
+
+    double sqSum = std::inner_product(
+        diff.begin(), diff.end(), diff.begin(), 0.0);
+    double stddev = std::sqrt(sqSum / (batchLB.size()-1));
+
+    double kappa = 2.2621; // alpha = 0.05, degrees of freedom = 9
+
+    double lower = mean - (kappa*stddev)/std::sqrt(batchLB.size());
+    double upper = mean + (kappa*stddev)/std::sqrt(batchLB.size());
+
+    std::tuple<double, double> lbRange = std::make_tuple(lower, upper);
+
+    double relGap = (maxUpperBound - lower)/maxUpperBound;
+
+    std::cout << lower << ", " << upper << std::endl;
+    std::cout << "gap estimate = " << relGap*100 << std::endl;
 
     return 0;
 }

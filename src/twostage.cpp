@@ -84,7 +84,7 @@ void TwoStage::populateEdges() {
     _recoursePaths = recoursePaths;
     _edgeMap = edgeMap;
     return;
-}
+};
 
 void TwoStage::populateConstraints() {
 
@@ -136,9 +136,7 @@ void TwoStage::populateConstraints() {
 };
 
 
-
-
-void TwoStage::solve() {
+void TwoStage::solveDeterministic() {
     
     populateConstraints();
     IloNumArray cost(_model.getEnv());
@@ -168,16 +166,19 @@ void TwoStage::solve() {
 
     double firstStageCost = 0.0;
     std::vector<std::tuple<int, int>> solutionEdges;
+    std::vector<int> solutionEdgeIds;
     for (int i=0; i<_model.getVariables().at("x").getSize(); ++i) {
         if (cplex.getValue(_model.getVariables().at("x")[i]) > 0.9) {
             int from = _firstStageEdges[i].from();
             int to = _firstStageEdges[i].to();
             solutionEdges.push_back(std::make_pair(from, to));
+            solutionEdgeIds.push_back(i);
             firstStageCost += _firstStageEdges[i].cost();
         }
     }
 
     computePath(solutionEdges);
+    computeUB(solutionEdgeIds);
     _firstStageCost = firstStageCost;
     _secondStageCost = 0.0;
     _pathCost = _firstStageCost + _secondStageCost;
@@ -222,7 +223,6 @@ void TwoStage::solve(int batchId,
 
     IloCplex cplex(_model.getEnv());
     cplex.extract(_model.getModel());
-    cplex.exportModel("test1.lp");
     cplex.setOut(_model.getEnv().getNullStream());
     cplex.use(addLazyCallback(_model.getEnv(), 
         _model,
@@ -266,6 +266,7 @@ void TwoStage::solve(int batchId,
     _firstStageCost = firstStageCost;
     _secondStageCost = secondStageCost;
     _pathCost = firstStageCost + secondStageCost;
+    writeSolution(batchId, numScenariosPerBatch);
     return;
 };
 

@@ -44,6 +44,7 @@ class TwoStage {
         void populateConstraints();
         void computePath(std::vector<std::tuple<int, int>> &);
         void computeUB(std::vector<int> & );
+        void writeSolution(int batchId, int numScenarios);
 
     public: 
         TwoStage(const Instance & instance, const Scenarios & scenarios);
@@ -68,14 +69,14 @@ class TwoStage {
         std::tuple<double, double> getUB() { return _ub; };
         std::tuple<double, double> getUBRange() { return _ubRange; };
         void setModel(Model & model) { _model = model; };
-        void writeSolution(int batchId, int numScenarios);
+        
 
 
         void initialize();
         
         void populateEdges(); 
         void solve(int batchId, int numScenariosPerBatch);
-        void solve();
+        void solveDeterministic();
     
          
 };
