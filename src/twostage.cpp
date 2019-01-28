@@ -238,11 +238,13 @@ void TwoStage::solve(int batchId,
     double firstStageCost = 0.0;
     double secondStageCost = 0.0;
     std::vector<std::tuple<int, int>> solutionEdges;
+    std::vector<int> solutionEdgeIds;
     for (int i=0; i<_model.getVariables().at("x").getSize(); ++i) {
         if (cplex.getValue(_model.getVariables().at("x")[i]) > 0.9) {
             int from = _firstStageEdges[i].from();
             int to = _firstStageEdges[i].to();
             solutionEdges.push_back(std::make_pair(from, to));
+            solutionEdgeIds.push_back(i);
             firstStageCost += _firstStageEdges[i].cost();
             auto recourseEdge = _recourseEdges[i];
             double recourseCost = 0.0;
@@ -260,7 +262,7 @@ void TwoStage::solve(int batchId,
     }
 
     computePath(solutionEdges);
-    computeUB(solutionEdges);
+    computeUB(solutionEdgeIds);
     _firstStageCost = firstStageCost;
     _secondStageCost = secondStageCost;
     _pathCost = firstStageCost + secondStageCost;
@@ -285,7 +287,7 @@ void TwoStage::computePath(
 };
 
 void TwoStage::computeUB(
-    std::vector<std::tuple<int, int>> & edges) {
+    std::vector<int> & edgeIds) {
     
     std::vector<double> batchUB;
     for (int i=1; i<11; ++i) {
@@ -294,29 +296,23 @@ void TwoStage::computeUB(
         double firstStageCost = 0.0;
         double secondStageCost = 0.0;
 
-        for (int j=0; j<edges.size(); ++j) {
-            int from = std::get<0>(edges[j]);
-            int to = std::get<1>(edges[j]);
-            int edgeId = _edgeMap.at(std::make_tuple(from, to));
-            firstStageCost += _firstStageEdges[edgeId].cost();
-            auto recourseEdge = _recourseEdges[edgeId];
+        for (auto id : edgeIds) {
+            int from = _firstStageEdges[id].from();
+            firstStageCost += _firstStageEdges[id].cost();
+            auto recourseEdge = _recourseEdges[id];
             double recourseCost = 0.0;
-            if (_hasRecourseEdge[edgeId]) {
+            if (_hasRecourseEdge[id]) {
                 recourseCost = recourseEdge.cost() - 
-                    _firstStageEdges[i].cost();
+                    _firstStageEdges[id].cost();
                 double multiplier = 0;
-                for (int k=0; k<scenarios.size(); ++k) 
-                    multiplier += scenarios[k][from];
+                for (int j=0; j<scenarios.size(); ++j) 
+                    multiplier += scenarios[j][from];
                 recourseCost *= (multiplier/scenarios.size());
             }
             secondStageCost += recourseCost;
         }  
-        std::cout << firstStageCost << ", " << secondStageCost << std::endl;
         batchUB.push_back(firstStageCost + secondStageCost);  
     }
-
-    // for (auto elem : batchUB) 
-    //     std::cout << elem << std::endl;
 
     double sum = std::accumulate(batchUB.begin(), 
         batchUB.end(), 0.0);
@@ -340,5 +336,38 @@ void TwoStage::computeUB(
     double upper = mean + (kappa*stddev)/std::sqrt(batchUB.size());
 
     _ubRange = std::make_tuple(lower, upper);
+    return;
+}
+
+void TwoStage::writeSolution(int batchId, 
+    int numScenarios) {
+
+    std::string file = _instance.getName();
+    std::string path = "../output/";
+    std::string filename = path + "b" 
+        + std::to_string(batchId) + "-n" 
+        + std::to_string(numScenarios) + "-" 
+        + file;
+
+    std::ofstream outfile;
+    outfile.open(filename);
+
+    outfile << batchId << std::endl 
+        << numScenarios << std::endl 
+        << _pathCost << std::endl 
+        << _path.size();
+
+    for (int i=0; i<_path.size(); ++i) {
+        if (i%10 == 0) 
+            outfile << std::endl;
+        outfile << _path[i] << " ";
+    }
+    
+    outfile << std::endl;
+
+    outfile << std::get<0>(_ubRange) << " "
+        << std::get<1>(_ubRange);
+
+    outfile.close();
     return;
 }

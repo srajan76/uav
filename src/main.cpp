@@ -45,30 +45,9 @@ int main(int argc, char* argv[]){
         formulation.initialize();
         formulation.populateEdges();
         formulation.solve(i+1, 100);
-        std::cout << "first stage cost : " << 
-            formulation.getFirstStageCost() << std::endl;
-        std::cout << "computed cost : " << 
-            formulation.getPathCost() << std::endl;
-        auto path = formulation.getPath();
+        formulation.writeSolution(i+1, 100);
         
-        batchLB.push_back(formulation.getPathCost());
-        
-        std::cout << "number of vertices in optimal path : " << path.size();
-        for (int i=0; i<path.size(); ++i) {
-            if (i%10 == 0) 
-                std::cout << std::endl;
-            std::cout << path[i] << " ";
-        }
-    
-        std::cout << std::endl;
-        auto ub = formulation.getUB();
-        std::cout << "mean ub: " << std::get<0>(ub) << ", " 
-            << "stddev ub: " << std::get<1>(ub) << std::endl; 
-
-        auto ubRange = formulation.getUBRange();
-        std::cout << "95\% interval UB bounds : [" 
-            << std::get<0>(ubRange) << ", " << std::get<1>(ubRange) 
-            << "]" << std::endl << std::endl;
+        batchLB.push_back(formulation.getPathCost());  
     }
       
 
