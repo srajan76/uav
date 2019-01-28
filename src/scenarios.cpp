@@ -7,8 +7,7 @@ Scenarios::Scenarios() :
     _seed(2019),
     _numTargets(), 
     _numScenarios(2000),
-    _maxBatches(10),
-    _maxBatchSize(100), 
+    _maxScenarios(1000),
     _prob(),
     _omega() {};
 
@@ -27,20 +26,16 @@ void Scenarios::generateScenarios() {
 };
 
 std::vector<std::vector<int>> Scenarios::getScenarios(
-    int batchId, int scenariosPerBatch) {
+    int batchId, int scenariosPerBatch) const {
     
-    if (batchId > _maxBatches) {
-        std::cerr << "batch id should be less than or equal to" << _maxBatches << std::endl;
-        exit(1);
-    }
-
-    if (scenariosPerBatch > _maxBatchSize) {
-        std::cerr << "scenarios per batch should be less than or equal to " << _maxBatchSize << std::endl;
+    if (batchId*scenariosPerBatch > _maxScenarios) {
+        std::cerr << "batch id * scenario per batch should be less than or equal to" 
+            << _maxScenarios << std::endl;
         exit(1);
     }
 
     int from = scenariosPerBatch * (batchId - 1);
-    int to = scenariosPerBatch * batchId - 1;
+    int to = scenariosPerBatch * batchId;
     std::vector<std::vector<int>> reduced(&_omega[from], &_omega[to]);
     
     return reduced;

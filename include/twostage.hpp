@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include <ilcplex/ilocplex.h>
 #include <vector>
 #include <tuple>
 #include <unordered_map>
+#include <limits>
+#include <string>
 #include "util.hpp"
 
 
@@ -36,6 +39,8 @@ class TwoStage {
     private: 
         void setSource()  { _source = _instance.getSource(); };
         void setDestination() { _destination = _instance.getDestination(); };
+        void populateConstraints();
+        void computePath(std::vector<std::tuple<int, int>> &);
 
     public: 
         TwoStage(const Instance & instance, const Scenarios & scenarios);
@@ -57,12 +62,13 @@ class TwoStage {
         double getFirstStageCost() const { return _firstStageCost; };
         double getSecondStageCost() const { return _secondStageCost; };
         double getPathCost() const { return _pathCost; };
+        void setModel(Model & model) { _model = model; };
 
         void initialize();
         
         void populateEdges(); 
-        void populateConstraints();
-        void solve(int numBatches, int numScenariosPerBatch);
+        void solve(int batchId, int numScenariosPerBatch);
+        void solve();
     
          
 };

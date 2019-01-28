@@ -10,11 +10,11 @@ option(ENABLE_CPLEX "Link to Cplex libraries" ON)
 
 # LEMON settings
 if (APPLE)
-    set(LEMON_INCLUDE_DIR "$ENV{HOME}/usr/local/include" CACHE PATH "LEMON include directory")
+    set(LEMON_INCLUDE_DIR "/usr/local/include/" CACHE PATH "LEMON include directory")
     # set(LEMON_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/third_party/lemon-1.3.1/" CACHE PATH "LEMON include directory")
     set(LEMON_INCLUDE_DIRS "${LEMON_INCLUDE_DIR}")
     set(LEMON_LIB_NAME "libemon.a")
-    set(LEMON_LIBRARY "$ENV{HOME}/usr/local/lib/${LEMON_LIB_NAME}" CACHE FILEPATH "LEMON library")
+    set(LEMON_LIBRARY "/usr/local/lib/${LEMON_LIB_NAME}" CACHE FILEPATH "LEMON library")
     # set(LEMON_LIBRARY "${PROJECT_SOURCE_DIR}/third_party/lemon-1.3.1/build/lemon/${LEMON_LIB_NAME}" CACHE FILEPATH "LEMON library")
     set(LEMON_LIBRARIES "${LEMON_LIBRARY}")
     MARK_AS_ADVANCED(LEMON_LIBRARY LEMON_INCLUDE_DIR)
@@ -42,9 +42,9 @@ endif()
 
 # CPLEX flags
 if(APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fPIC -DNDEBUG -DIL_STD")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fPIC -DIL_STD")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -O -fPIC -fno-strict-aliasing -fexceptions -DNDEBUG -DIL_STD -lpthread -pthread -ldl")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -O -fPIC -fno-strict-aliasing -fexceptions -DIL_STD -lpthread -pthread -ldl")
 endif()
 
 

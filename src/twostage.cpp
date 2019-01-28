@@ -4,6 +4,9 @@
 #include "scenarios.hpp"
 #include "twostage.hpp"
 #include "dubins.hpp"
+#include "callbacks.hpp"
+
+#include <cassert>
 
 TwoStage::TwoStage(const Instance & instance,
     const Scenarios & scenarios) :
@@ -41,6 +44,7 @@ void TwoStage::populateEdges() {
     for (int i=0; i<getNumVertices(); ++i) {
         for (int j=0; j<getNumVertices(); ++j) {
             if (i == j) continue;
+            if (i == getSource() && j == getDestination()) continue;
             if (j == getSource()) continue;
             if (i == getDestination()) continue;
             auto ith = coords.at(i);
@@ -79,3 +83,198 @@ void TwoStage::populateEdges() {
     _edgeMap = edgeMap;
     return;
 }
+
+void TwoStage::populateConstraints() {
+
+    Model model;
+    model.getModel().setName(getInstance().getName().c_str());
+
+    IloNumVarArray x(model.getEnv());
+    model.getVariables().insert({"x", x});
+
+    for (int i=0; i<_firstStageEdges.size(); ++i) {
+        auto edge = _firstStageEdges[i];
+        std::string varname = "x_" + std::to_string(edge.from()) +  "_" + std::to_string(edge.to());
+        IloNumVar var(model.getEnv(), 0, 1, ILOINT, varname.c_str());
+        model.getVariables().at("x").add(var);
+    }
+
+    for (int i=0; i<getNumVertices(); ++i) {
+        IloExpr inExpr(model.getEnv());
+        IloExpr outExpr(model.getEnv());
+        for (int j=0; j<getNumVertices(); ++j) {
+            if (i == j) continue; 
+            auto inItr = _edgeMap.find(std::make_tuple(j, i));
+            auto outItr = _edgeMap.find(std::make_tuple(i, j));
+            if (inItr != _edgeMap.end()) {
+                inExpr += model.getVariables().at("x")[inItr->second];
+            }
+            if (outItr != _edgeMap.end()) {
+                outExpr += model.getVariables().at("x")[outItr->second];
+            }
+        }
+        if (i != getDestination()) {
+            std::string constrName = "out_" + std::to_string(i);
+            IloRange constrOut(model.getEnv(), 1, outExpr, 1, constrName.c_str());
+            model.getConstraints().push_back(constrOut);
+        }
+        if (i != getSource()) {
+            std::string constrName = "in_" + std::to_string(i);
+            IloRange constrIn(model.getEnv(), 1, inExpr, 1, constrName.c_str());
+            model.getConstraints().push_back(constrIn);
+        }
+    }
+
+    for (IloRange constr : model.getConstraints())  {
+        model.getModel().add(constr);
+    }
+
+    setModel(model);
+    return;
+};
+
+
+
+
+void TwoStage::solve() {
+    
+    populateConstraints();
+    IloNumArray cost(_model.getEnv());
+    for (int i=0; i<_firstStageEdges.size(); ++i) {
+        auto edge = _firstStageEdges[i];
+        cost.add(edge.cost());
+    }
+
+    _model.getModel().add(
+        IloMinimize(_model.getEnv(), 
+        IloScalProd(cost, _model.getVariables().at("x"))
+    ));
+
+    IloCplex cplex(_model.getEnv());
+    cplex.extract(_model.getModel());
+    cplex.exportModel("test.lp");
+    cplex.use(addLazyCallback(_model.getEnv(), 
+        _model,
+        _firstStageEdges, 
+        _edgeMap, 
+        getNumVertices(), 
+        getSource(), 
+        getDestination()
+    ));
+    cplex.solve();
+
+    double firstStageCost = 0.0;
+    std::vector<std::tuple<int, int>> solutionEdges;
+    for (int i=0; i<_model.getVariables().at("x").getSize(); ++i) {
+        if (cplex.getValue(_model.getVariables().at("x")[i]) > 0.9) {
+            int from = _firstStageEdges[i].from();
+            int to = _firstStageEdges[i].to();
+            solutionEdges.push_back(std::make_pair(from, to));
+            firstStageCost += _firstStageEdges[i].cost();
+        }
+    }
+
+    computePath(solutionEdges);
+    _firstStageCost = firstStageCost;
+    _secondStageCost = 0.0;
+    _pathCost = _firstStageCost + _secondStageCost;
+
+    return;
+};
+
+void TwoStage::solve(int batchId, 
+    int numScenariosPerBatch) {
+
+    auto scenarios = _scenarios.getScenarios(
+        batchId, numScenariosPerBatch
+    );
+    assert(scenarios.size() == numScenariosPerBatch);
+
+    populateConstraints();
+    IloNumArray cost(_model.getEnv());
+
+    for (int i=0; i<_firstStageEdges.size(); ++i) {
+        auto edge = _firstStageEdges[i];
+        auto recourseEdge = _recourseEdges[i];
+        int from = edge.from();
+        int to = edge.to();
+        double directCost = edge.cost();
+        double recourseCost = 0.0;
+        if (_hasRecourseEdge[i]) {
+            recourseCost = recourseEdge.cost() - directCost;
+            double multiplier = 0;
+            for (int j=0; j<scenarios.size(); ++j) {
+                multiplier += scenarios[j][from];
+            }
+            recourseCost *= (multiplier/scenarios.size());
+        }
+        double effectiveCost = directCost + recourseCost;
+        cost.add(effectiveCost);
+    }
+    
+    _model.getModel().add(
+        IloMinimize(_model.getEnv(), 
+        IloScalProd(cost, _model.getVariables().at("x"))
+    ));
+
+    IloCplex cplex(_model.getEnv());
+    cplex.extract(_model.getModel());
+    cplex.exportModel("test1.lp");
+    cplex.use(addLazyCallback(_model.getEnv(), 
+        _model,
+        _firstStageEdges, 
+        _edgeMap, 
+        getNumVertices(), 
+        getSource(), 
+        getDestination()
+    ));
+    cplex.solve();
+
+
+    double firstStageCost = 0.0;
+    double secondStageCost = 0.0;
+    std::vector<std::tuple<int, int>> solutionEdges;
+    for (int i=0; i<_model.getVariables().at("x").getSize(); ++i) {
+        if (cplex.getValue(_model.getVariables().at("x")[i]) > 0.9) {
+            int from = _firstStageEdges[i].from();
+            int to = _firstStageEdges[i].to();
+            solutionEdges.push_back(std::make_pair(from, to));
+            firstStageCost += _firstStageEdges[i].cost();
+            auto recourseEdge = _recourseEdges[i];
+            double recourseCost = 0.0;
+            if (_hasRecourseEdge[i]) {
+                recourseCost = recourseEdge.cost() -
+                    _firstStageEdges[i].cost();
+                double multiplier = 0;
+                for (int j=0; j<scenarios.size(); ++j) {
+                    multiplier += scenarios[j][from];
+                }
+                recourseCost *= (multiplier/scenarios.size());
+            }
+            secondStageCost += recourseCost;
+        }
+    }
+
+    computePath(solutionEdges);
+    _firstStageCost = firstStageCost;
+    _secondStageCost = secondStageCost;
+    _pathCost = firstStageCost + secondStageCost;
+    return;
+};
+
+void TwoStage::computePath(
+    std::vector<std::tuple<int, int>> & edges) {
+
+    std::vector<int> solution;
+    solution.push_back(getSource());
+
+    while (solution.back() != getDestination()) {
+        auto it = std::find_if(edges.begin(), edges.end(),
+                    [&solution](const std::tuple<int,int>& edge) 
+                    {return std::get<0>(edge) == solution.back(); });
+        solution.push_back(std::get<1>(*it));
+    }
+
+    _path = solution;
+    return;
+};
