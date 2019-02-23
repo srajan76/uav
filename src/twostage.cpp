@@ -266,7 +266,7 @@ void TwoStage::solve(int batchId,
     _firstStageCost = firstStageCost;
     _secondStageCost = secondStageCost;
     _pathCost = firstStageCost + secondStageCost;
-    writeSolution(batchId, numScenariosPerBatch);
+    // writeSolution(batchId, numScenariosPerBatch);
     return;
 };
 

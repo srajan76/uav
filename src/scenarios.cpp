@@ -11,9 +11,9 @@ Scenarios::Scenarios() :
     _prob(),
     _omega() {};
 
-void Scenarios::generateScenarios() {
+void Scenarios::generateScenarios(double prob) {
     _omega.resize(_numScenarios);
-    _prob.resize(_numTargets, 0.5);
+    _prob.resize(_numTargets, prob);
     std::mt19937 generator(_seed);
 
     for (int i=0; i<_numScenarios; ++i) {

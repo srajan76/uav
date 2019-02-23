@@ -18,6 +18,7 @@ int main(int argc, char* argv[]){
     opt.add_option("p", "instance_path", "instance_path", "../data/" );
     opt.add_option("f", "file", "name of the instance file", "10-1-5-0.txt" ); 
     opt.add_option("s", "num_scenarios", "number of scenarios per batch", "100");
+    opt.add_option("r", "probability", "pr of success", "0.5");
 
     // parse the options and verify that all went well
     bool correct_parsing = opt.parse_options(argc, argv);
@@ -33,14 +34,16 @@ int main(int argc, char* argv[]){
     instance.setPath(opt["p"]);
     instance.readData();
 
-    
+    double prob = op::str2double(opt["r"]);
+
     Scenarios scenarios;
     scenarios.setSeed(instance.getSeed());
     scenarios.setNumTargets(instance.getNumTargets());
-    scenarios.generateScenarios();
+    scenarios.generateScenarios(prob);
 
     std::vector<double> batchLB;
     std::vector<double> ubUpper;
+    std::vector<double> ubLower;
     
     for (int i=0; i<10; ++i) {
         TwoStage formulation(instance, scenarios);
@@ -49,13 +52,19 @@ int main(int argc, char* argv[]){
         formulation.solve(i+1, op::str2int(opt["s"]));
         batchLB.push_back(formulation.getPathCost());  
         auto ubRange = formulation.getUBRange();
+        ubLower.push_back(std::get<0>(ubRange));
         ubUpper.push_back(std::get<1>(ubRange));
     }
 
-    double maxUpperBound = *(std::max_element(
+    int index = std::distance(
+        std::begin(ubUpper), 
+        std::max_element(
         std::begin(ubUpper), 
         std::end(ubUpper))
     );
+    double maxUpperBound = ubUpper[index];
+    double maxLowerBound = ubLower[index];
+
 
     double sum = std::accumulate(batchLB.begin(), 
         batchLB.end(), 0.0);
@@ -79,11 +88,21 @@ int main(int argc, char* argv[]){
 
     std::tuple<double, double> lbRange = std::make_tuple(lower, upper);
 
-    double relGap = (maxUpperBound - lower)/maxUpperBound;
-
-    std::cout << lower << ", " << upper << std::endl;
-    std::cout << "gap estimate = " << relGap*100 << std::endl;
-
+    double meanUpper = (maxLowerBound + maxUpperBound)/2.0;
+    double meanLower = (lower + upper)/2.0;
+    double epLower = (meanLower - lower);
+    double epUpper = (meanUpper - maxLowerBound);
+    double gapEstimate;
+    if (meanUpper > meanLower)
+        gapEstimate = (meanUpper - meanLower + 
+            epLower + epUpper);
+    else 
+        gapEstimate =  (epLower + epUpper);
+ 
+    std::cout << meanLower << " " << epLower << " " <<  
+    meanUpper << " " << epUpper << " " << 
+    gapEstimate << " " << std::endl;
+    
     return 0;
 }
 

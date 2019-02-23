@@ -22,7 +22,7 @@ class Scenarios {
         int getNumScenarios() const { return _numScenarios; };
         int getMaxScenarios() const { return _maxScenarios; };
 
-        void generateScenarios();
+        void generateScenarios(double prob);
         std::vector<std::vector<int>> getScenarios(
             int batchId, int scenariosPerBatch) const;
         std::vector<std::vector<int>> getUBScenarios(
