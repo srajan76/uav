@@ -19,6 +19,7 @@ int main(int argc, char* argv[]){
     opt.add_option("f", "file", "name of the instance file", "10-1-5-0.txt" ); 
     opt.add_option("s", "num_scenarios", "number of scenarios per batch", "100");
     opt.add_option("r", "probability", "pr of success", "0.5");
+    opt.add_option("d", "deterministic", "solve deterministic");
 
     // parse the options and verify that all went well
     bool correct_parsing = opt.parse_options(argc, argv);
@@ -45,6 +46,19 @@ int main(int argc, char* argv[]){
     std::vector<double> ubUpper;
     std::vector<double> ubLower;
     
+    
+    if (op::str2bool(opt["d"])) {
+        TwoStage formulation(instance, scenarios);
+        formulation.initialize();
+        formulation.populateEdges();
+        formulation.solveDeterministic();
+        auto ubRange = formulation.getUBRange();
+        double detMean = (std::get<0>(ubRange) + std::get<1>(ubRange))/2.0;
+        std::cout << detMean << std::endl;
+        return 0;
+    }
+    
+
     for (int i=0; i<10; ++i) {
         TwoStage formulation(instance, scenarios);
         formulation.initialize();
@@ -99,9 +113,11 @@ int main(int argc, char* argv[]){
     else 
         gapEstimate =  (epLower + epUpper);
  
-    std::cout << meanLower << " " << epLower << " " <<  
-    meanUpper << " " << epUpper << " " << 
-    gapEstimate << " " << std::endl;
+    // std::cout << meanLower << " " << epLower << " " <<  
+    // meanUpper << " " << epUpper << " " << 
+    // gapEstimate << " " << std::endl;
+
+    std::cout << meanUpper << std::endl;
     
     return 0;
 }

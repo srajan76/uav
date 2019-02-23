@@ -13,7 +13,6 @@ def set_box_color(bp, color, ls):
 
 num_targets = [25, 50, 75, 100]
 num_scenarios = [20, 40, 60, 80, 100]
-p = [0.2, 0.4, 0.6, 0.8]
 p_nom = 0.5
 
 f = open('results_nom.csv', 'r')
